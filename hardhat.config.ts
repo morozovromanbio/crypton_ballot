@@ -40,4 +40,21 @@ const config: HardhatUserConfig = {
   },
 };
 
+
+
+// networks: {
+//   rinkeby: {
+//     url: `https://eth-rinkeby.alchemyapi.io/v2/${alchemyApiKey}`,
+//     accounts:
+//       process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+//   },
+//  hardhat: {
+//   chainId 1337
+// }
+//
+// },
+// gasReporter: {
+//   enabled: process.env.REPORT_GAS !== undefined,
+//   currency: "USD",
+// },
 export default config;
