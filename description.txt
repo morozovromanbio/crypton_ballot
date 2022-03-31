@@ -1,5 +1,6 @@
 файл AucEngine.sol - смарт контракт который создает голосования
-deploy smart contract in rinkeby 0xc41F68730Df29a900E50E2B007B0fcB7f509822B
+deploy smart contract in rinkeby 0xdaac2928C46F0339728e5E21476D52a7A96E6896
+verified etherscan
 
 
 npx hardhat run scripts/deploy.ts --network polygon
