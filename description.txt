@@ -1,0 +1,8 @@
+файл AucEngine.sol - смарт контракт который создает голосования
+deploy smart contract in rinkeby 0xc41F68730Df29a900E50E2B007B0fcB7f509822B
+
+
+npx hardhat run scripts/deploy.ts --network polygon
+
+
+https://github.com/svarichevskiy/crypton_ballot

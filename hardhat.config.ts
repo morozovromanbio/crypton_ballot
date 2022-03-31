@@ -25,36 +25,21 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 const config: HardhatUserConfig = {
   solidity: "0.8.11",
   networks: {
-    ropsten: {
-      url: process.env.ROPSTEN_URL || "",
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-  },
-  gasReporter: {
-    enabled: process.env.REPORT_GAS !== undefined,
-    currency: "USD",
+    rinkeby: {
+      url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_KEY}`,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : []
+    }
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: `${process.env.ETHERSCAN_KEY}`
   },
 };
 
 
+//accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : []
 
-// networks: {
-//   rinkeby: {
-//     url: `https://eth-rinkeby.alchemyapi.io/v2/${alchemyApiKey}`,
-//     accounts:
-//       process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-//   },
-//  hardhat: {
-//   chainId 1337
-// }
-//
-// },
-// gasReporter: {
-//   enabled: process.env.REPORT_GAS !== undefined,
-//   currency: "USD",
-// },
+
+
+
+
 export default config;

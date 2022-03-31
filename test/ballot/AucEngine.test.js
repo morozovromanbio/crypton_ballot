@@ -3,12 +3,12 @@ const { ethers } = require("hardhat")
 
 describe("AucEngine", function () {
   let owner
-  let candidate
+  let candidat
   let participant
   let voting
 
   beforeEach(async function () {
-    [owner, candidate, participant] = await ethers.getSigners()
+    [owner, candidat, participant] = await ethers.getSigners()
 
     const AucEngine = await ethers.getContractFactory("AucEngine", owner)
     voting = await AucEngine.deploy()
@@ -20,34 +20,87 @@ describe("AucEngine", function () {
     console.log(currentOwner)
     expect(currentOwner).to.eq(owner.address)
   })
+
+  //для конкретного блока
+  async function getTimestamp(bn) {
+    return (
+      //ether подключаюсь к блокчейну. полочаю информацию-именно время
+      await ethers.provider.getBlock(bn)
+    ).timestamp
+  }
+
+  describe("addVoting", function () {
+    it("add voting correctly", async function() {
+      const tx = await voting.addVoting("VotingOne")
+      
+      const cAuction = await voting.votings(0) 
+      expect(cAuction.title).to.eq("VotingOne")  
+      //console.log(tx)
+
+      await expect(tx)
+        .to.emit(voting, 'VotingCreated')
+        .withArgs("VotingOne")
+    })
+  })
+
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  describe("addCandidate", function () {
+    it("add candidate correctly", async function() {
+      
+      await voting.addVoting("VotingOne")
+      
+      const cAuction = await voting.votings(0)
+      expect(cAuction.title).to.eq("VotingOne")
+      
+      this.timeout(5000) // 5s
+      await delay(1000)
+
+      const candidateTx = await voting.connect(candidat).addCandidate(0)
+
+      const addrCandidate = voting.votings(0).
+      
+
+      // await expect(
+      //   voting.connect(candidate).addCandidate(index)
+      // ).to.be.revertedWith('start')
+      
+    })
+  })
 })
+  // describe("addCandidate", function () {
+  //   it("add candidate correctly", async function() {
+      
+  //     await voting.addVoting(
+  //       "VotingOne"
+  //     )
+      
+  //     const cAuction = await voting.votings(0) // Promise
+  //     expect(cAuction.title).to.eq("VotingOne")
+      
+  //     this.timeout(5000) // 5s
+  //     await delay(1000)
 
-//   async function getTimestamp(bn) {
-//     return (
-//       await ethers.provider.getBlock(bn)
-//     ).timestamp
-//   }
+  //     const index = 0;
+  //     const candidateTx = await voting.connect(candidate).addCandidate(
+  //       index
+  //     )
 
-//   describe("createAuction", function () {
-//     it("creates votingion correctly", async function() {
-//       const duration = 60
-//       const tx = await voting.createAuction(
-//         ethers.utils.parseEther("0.0001"),
-//         3,
-//         "fake item",
-//         duration
-//       )
+  //    console.log(candidateTx)
 
-//       const cAuction = await voting.votingions(0) // Promise
-//       expect(cAuction.item).to.eq("fake item")
-//       const ts = await getTimestamp(tx.blockNumber)
-//       expect(cAuction.endsAt).to.eq(ts + duration)
-//     })
-//   })
+  //     await expect(
+  //       voting.connect(candidate).addCandidate(index)
+  //     ).to.be.revertedWith('start')
+      
+  //   })
+  // })
 
-//   function delay(ms) {
-//     return new Promise(resolve => setTimeout(resolve, ms))
-//   }
+
+
+
+
 
 //   describe("buy", function () {
 //     it("allows to buy", async function() {

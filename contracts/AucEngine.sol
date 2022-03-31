@@ -6,11 +6,12 @@ pragma solidity ^0.8.11;
 
 contract AucEngine is Ownable {
 
+    //address public owner;
     uint256 public constant REQUIRED_SUM = 10000000 gwei;
     uint256 public constant DURATIONTIME = 3 days;
     uint256 public constant FEE = 10;
     
-    event VotingCreated(uint256 index, string votingName, uint256 endTime);
+    event VotingCreated(string title);
 
     //структура голосования
     struct Voting {
@@ -52,6 +53,8 @@ contract AucEngine is Ownable {
     function addVoting(string memory _title) external onlyOwner {
         Voting storage newVoting = votings.push();
         newVoting.title = _title;
+
+        emit VotingCreated(_title);
     }
 
     function addCandidate(uint index) external {
