@@ -4,6 +4,7 @@ import { } from "@nomiclabs/hardhat-waffle";
 
 import { expect, use } from "chai"
 import { BigNumber, ContractTransaction, utils } from "ethers";
+
 import { ethers } from "hardhat"
 import { AucEngine } from "../typechain";
 import { MockProvider, solidity } from "ethereum-waffle";
@@ -59,7 +60,7 @@ describe("AucEngine", async function () {
       const cVoting = await voting.votings(0);
       expect(cVoting.title).to.eq("VotingOne");
       
-      await expect(tx).to.emit(voting, 'VotingCreated').withArgs("VotingOne");
+      await expect(tx).to.emit(voting, 'VotingCreated').withArgs(cVoting.title);
     });
   });
  
@@ -92,21 +93,9 @@ describe("AucEngine", async function () {
 
       const viewTx = await voting.candidates(0);
 
-      console.log(viewTx);     
+      console.log(viewTx);    
       
-      // expect(viewTx).to.be.equal([
-      //     [
-      //       '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
-      //     ],
-      //     [
-      //      {
-      //        votes : "0",
-      //        _isBigNumber: true
-      //      }
-      //   ]
-        
-      //    ]
-      // );
+      expect(viewTx).to.be.an('array');
       
     })
   })
@@ -127,7 +116,8 @@ describe("AucEngine", async function () {
         { value: utils.parseEther("0.01") }
       );
       
-      console.log(voting.address);
+      console.log(await voting.candidates(0));
+
       await expect(() => tx).
         to.changeEtherBalance(
           voting, 
@@ -136,8 +126,10 @@ describe("AucEngine", async function () {
 
       const cVoting = await voting.votings(0);
       expect(cVoting.totalAmount).to.be.eq(VOTING_SUM);
+
+      
           
-     
+      
       //await  
       
          
