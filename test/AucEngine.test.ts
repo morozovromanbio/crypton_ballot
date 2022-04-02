@@ -1,83 +1,80 @@
+import { BlockTag } from "@ethersproject/abstract-provider";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
+import { ContractTransaction, utils } from "ethers";
 import { ethers } from "hardhat"
+import { AucEngine } from "../typechain";
 
-describe("AucEngine", function () {
-  let owner
-  let candidate
-  let participant
-  let voting
+describe("AucEngine", async function () {
+  let owner : SignerWithAddress;
+  let candidat : SignerWithAddress;
+  let participant : SignerWithAddress;
+  let other : SignerWithAddress[];
+  let voting : AucEngine;
+  let isDone : boolean = true;
 
   beforeEach(async function () {
-    [owner, candidate, participant] = await ethers.getSigners()
+    [owner, candidat, participant, ...other] = await ethers.getSigners();
+    const AucEngine = await ethers.getContractFactory("AucEngine", owner);
+    voting = await AucEngine.deploy();
+    await voting.deployed();
+  });
 
-    const AucEngine = await ethers.getContractFactory("AucEngine", owner)
-    voting = await AucEngine.deploy()
-    await voting.deployed()
-  })
+  // async function getTimestamp(bn: BlockTag | Promise<BlockTag>) {
+  //   return (await ethers.provider.getBlock(bn)).timestamp
+  // }
+  
+  const VOTING_FEE = utils.parseEther("0.01");
 
-  it("sets owner", async function() {
-    const currentOwner = await voting.owner()
-    expect(currentOwner).to.eq(owner.address)
-  })
-})
+  const wait = (tx: ContractTransaction) => tx.wait();
 
-//   async function getTimestamp(bn) {
-//     return (
-//       await ethers.provider.getBlock(bn)
-//     ).timestamp
-//   }
+  const passTime = async () => {
+        await ethers.provider.send("evm_increaseTime", [3 * 24 * 60 * 60]);
+      };
 
-//   describe("createAuction", function () {
-//     it("creates votingion correctly", async function() {
-//       const duration = 60
-//       const tx = await voting.createAuction(
-//         ethers.utils.parseEther("0.0001"),
-//         3,
-//         "fake item",
-//         duration
-//       )
+  const addCandidate = (
+    candidate: SignerWithAddress,
+    by: SignerWithAddress = owner
+    ) => {
+     return voting.connect(by).addCandidate(candidate.address).then(wait);
+  };
 
-//       const cAuction = await voting.votingions(0) // Promise
-//       expect(cAuction.item).to.eq("fake item")
-//       const ts = await getTimestamp(tx.blockNumber)
-//       expect(cAuction.endsAt).to.eq(ts + duration)
-//     })
-//   })
+  describe("function addVoting", () => {
+    it("added voting", async () => {
+      const tx = await voting.addVoting("VotingOne");
+      
+      const cVoting = await voting.votings(0);
+      expect(cVoting.title).to.eq("VotingOne");
+      
+      await expect(tx).to.emit(voting, 'VotingCreated').withArgs("VotingOne");
+    });
+  });
 
-//   function delay(ms) {
-//     return new Promise(resolve => setTimeout(resolve, ms))
-//   }
+ 
+ 
 
-//   describe("buy", function () {
-//     it("allows to buy", async function() {
-//       await voting.connect(candidate).createAuction(
-//         ethers.utils.parseEther("0.0001"),
-//         3,
-//         "fake item",
-//         60
-//       )
+  describe("function startVoting", () => {
+    it("started voting", async () => {
+      await voting.addVoting("VotingOne");
 
-//       this.timeout(5000) // 5s
-//       await delay(1000)
+      const tx = await voting.startVoting(0);
+      await expect(tx.wait()).to.be.ok;
+      
+      
+      const cVoting = await voting.votings(0);
 
-//       const buyTx = await voting.connect(participant).
-//         buy(0, {value: ethers.utils.parseEther("0.0001")})
+      const blockNumBefore = await ethers.provider.getBlockNumber();
+      const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+      const timestampBefore = blockBefore.timestamp;
+      
+      expect(cVoting.started).to.be.true;
+    
+      expect(cVoting.endsAt).to.be.eq(timestampBefore + 3 * 24 * 60 * 60);
+      
+      
+    });
+  });
+  
+ 
 
-//       const cAuction = await voting.votingions(0)
-//       const finalPrice = cAuction.finalPrice
-//       await expect(() => buyTx).
-//         to.changeEtherBalance(
-//           candidate, finalPrice - Math.floor((finalPrice * 10) / 100)
-//         )
-
-//       await expect(buyTx)
-//         .to.emit(voting, 'AuctionEnded')
-//         .withArgs(0, finalPrice, participant.address)
-
-//       await expect(
-//         voting.connect(participant).
-//           buy(0, {value: ethers.utils.parseEther("0.0001")})
-//       ).to.be.revertedWith('stopped!')
-//     })
-//   })
-// })
+});
