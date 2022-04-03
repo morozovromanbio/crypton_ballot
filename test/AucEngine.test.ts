@@ -18,6 +18,7 @@ describe("AucEngine", async function () {
   let other : SignerWithAddress[];
   let voting : AucEngine;
   let isDone : boolean = true;
+  let index : number = 0;
   const [wallet, walletTo] = new MockProvider().getWallets();
 
   beforeEach(async function () {
@@ -34,9 +35,6 @@ describe("AucEngine", async function () {
 
   const wait = (tx: ContractTransaction) => tx.wait();
 
-  const { waffle } = require("hardhat");
-  const { deployContract } = waffle;
-
   const passTime = async () => {
         await ethers.provider.send("evm_increaseTime", [3 * 24 * 60 * 60]);
       };
@@ -49,7 +47,6 @@ describe("AucEngine", async function () {
   };
 
   describe("function addVoting", () => {
-
     it("should set the right owner", async function () {
       expect(await voting.owner()).to.equal(owner.address);
     });
@@ -63,12 +60,15 @@ describe("AucEngine", async function () {
       await expect(tx).to.emit(voting, 'VotingCreated').withArgs(cVoting.title);
     });
   });
- 
+  
+  beforeEach(async function () {
+    await voting.addVoting("VotingOne");   
+  });
+
   describe("function startVoting", () => {
 
     it("started voting", async () => {
-      await voting.addVoting("VotingOne");
-
+      
       const tx = await voting.startVoting(0);
       await expect(tx.wait()).to.be.ok;
          
@@ -84,11 +84,15 @@ describe("AucEngine", async function () {
     });
   });
   
+  describe("exists address in list", () => {
+    it('exists address', async () => {
+
+    });
+  });
+  
   describe("addCandidate", function () {
     it("add candidate correctly", async function() {
       
-      await voting.addVoting("VotingOne");      
-
       const candidateTx = await voting.connect(candidat).addCandidate(0);
 
       const viewTx = await voting.candidates(0);
@@ -97,18 +101,25 @@ describe("AucEngine", async function () {
       
       expect(viewTx).to.be.an('array');
       
-    })
-  })
+    });
+  });
 
-  describe("function vote", () => {
+  beforeEach(async function () {
+    await voting.connect(candidat).addCandidate(0);   
+  });
 
-    
+  describe("function vote", () => {  
     it("vote for a candidate", async () => {
       const ind = 0;
-      await voting.addVoting("VotingOne");
-      await voting.connect(candidat).addCandidate(0);
       await voting.connect(owner).addCandidate(0);
-      await voting.startVoting(0)
+      await voting.startVoting(0);
+
+      await expect(voting.connect(participant).vote(
+        0,
+        candidat.address,
+        { value: utils.parseEther("0.02") }
+      ))
+      .to.be.revertedWith("sum don't equal price");
 
       const tx = await voting.connect(participant).vote(
         0,
@@ -126,24 +137,30 @@ describe("AucEngine", async function () {
 
       const cVoting = await voting.votings(0);
       expect(cVoting.totalAmount).to.be.eq(VOTING_SUM);
-
-      
-          
-      
-      //await  
-      
-         
-      // const cVoting = await voting.votings(0);
-
-      // console.log(cVoting);
-
-      // const blockNumBefore = await ethers.provider.getBlockNumber();
-      // const blockBefore = await ethers.provider.getBlock(blockNumBefore);
-      // const endTime = blockBefore.timestamp + DURATION;       
-      // expect(cVoting.endsAt).to.be.eq(endTime);
           
     });
   });
+
+  describe("stop voting", () => {
+    it('exists address', async () => {
+      
+      await expect(voting.stopVoting(0))
+      .to.be.revertedWith("don't started");
+
+      await voting.startVoting(0);
+      await expect(voting.stopVoting(0))
+      .to.be.revertedWith("can't stop");
+ 
+      await ethers.provider.send("evm_increaseTime", [3 * 24 * 60 * 60 + 1]);     
+      const tt = await voting.stopVoting(0);
+
+      const cVoting = await voting.votings(0);
+      expect(cVoting.ended).to.be.true;
+
+
+    });
+  });
+  
 
   
  
