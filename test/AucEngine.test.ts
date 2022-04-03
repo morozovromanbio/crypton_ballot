@@ -22,7 +22,7 @@ describe("AucEngine", async function () {
   let index : number = 0;
   const [wallet, walletTo] = new MockProvider().getWallets();
 
-  beforeEach(async function () {
+  beforeEach(async () => {
     [owner, candidat, participant, ...other] = await ethers.getSigners();
     const AucEngine = await ethers.getContractFactory("AucEngine", owner);
     voting = await AucEngine.deploy();
@@ -87,11 +87,7 @@ describe("AucEngine", async function () {
     });
   });
   
-  describe("exists address in list", () => {
-    it('exists address', async () => {
-
-    });
-  });
+  
   
   describe("addCandidate", function () {
     it("add candidate correctly", async function() {
@@ -128,7 +124,7 @@ describe("AucEngine", async function () {
         0,
         candidat.address,
         { value: utils.parseEther("0.01") }
-      );
+      );    
       
       console.log(await voting.candidates(0));
 
@@ -140,12 +136,30 @@ describe("AucEngine", async function () {
 
       const cVoting = await voting.votings(0);
       expect(cVoting.totalAmount).to.be.eq(VOTING_SUM);
+
+        await expect(voting.connect(participant).vote(
+          0,
+          candidat.address,
+          { value: utils.parseEther("0.01") }
+        ))
+        .to.be.revertedWith("already vote");
           
+
+
+        await expect(voting.connect(participant).vote(
+          0,
+          candidat.address,
+          { value: utils.parseEther("0.01") }
+        ))
+        .to.be.revertedWith("already vote");
+
+        
+      
     });
   });
 
   describe("stop voting", () => {
-    it('exists address', async () => {
+    it('stop voting', async () => {
       
       await expect(voting.stopVoting(0))
       .to.be.revertedWith("don't started");  
@@ -165,9 +179,19 @@ describe("AucEngine", async function () {
     
       const cVoting = await voting.votings(0);
       expect(cVoting.ended).to.be.true;
+
+      await expect(voting.stopVoting(0))
+      .to.be.revertedWith("don't ended");
     
       await expect(() => tt)
         .to.changeEtherBalance(voting, -( VOTING_SUM_WIN));
+
+        await expect(voting.connect(participant).vote(
+          0,
+          candidat.address,
+          { value: utils.parseEther("0.01") }
+        ))
+        .to.be.revertedWith("has ended");
 
 
     });
