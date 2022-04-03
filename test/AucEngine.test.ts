@@ -8,6 +8,7 @@ import { BigNumber, ContractTransaction, utils } from "ethers";
 import { ethers } from "hardhat"
 import { AucEngine } from "../typechain";
 import { MockProvider, solidity } from "ethereum-waffle";
+import { getAddress } from "ethers/lib/utils";
 
 use(solidity);
 
@@ -30,6 +31,8 @@ describe("AucEngine", async function () {
   });
   
   const VOTING_SUM = utils.parseEther("0.01");
+
+  const VOTING_SUM_WIN = utils.parseEther("0.009");
 
   const DURATION = 3 * 24 * 60 * 60;
 
@@ -129,8 +132,8 @@ describe("AucEngine", async function () {
       
       console.log(await voting.candidates(0));
 
-      await expect(() => tx).
-        to.changeEtherBalance(
+      await expect(() => tx)
+        .to.changeEtherBalance(
           voting, 
           utils.parseEther("0.01")
       );
@@ -145,17 +148,26 @@ describe("AucEngine", async function () {
     it('exists address', async () => {
       
       await expect(voting.stopVoting(0))
-      .to.be.revertedWith("don't started");
+      .to.be.revertedWith("don't started");  
 
       await voting.startVoting(0);
       await expect(voting.stopVoting(0))
       .to.be.revertedWith("can't stop");
- 
+
+      await voting.connect(participant).vote(
+        0,
+        candidat.address,
+        { value: utils.parseEther("0.01") }
+      );
+
       await ethers.provider.send("evm_increaseTime", [3 * 24 * 60 * 60 + 1]);     
       const tt = await voting.stopVoting(0);
-
+    
       const cVoting = await voting.votings(0);
       expect(cVoting.ended).to.be.true;
+    
+      await expect(() => tt)
+        .to.changeEtherBalance(voting, -( VOTING_SUM_WIN));
 
 
     });

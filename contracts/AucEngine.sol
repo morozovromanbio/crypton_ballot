@@ -108,19 +108,5 @@ contract AucEngine is Ownable {
     }
 
 
-    function withdrawWin(address win, uint256 balance) private {
-
-        address payable receiver = payable(win);
-
-        uint256 balanceWin = balance - (balance * 10 / 100);
-        
-        receiver.transfer(balanceWin);
-    }
-
-    
-
- 
-
-
 }
 
